@@ -108,13 +108,14 @@ def show_results(albedo, normals, height_map, SE):
     plt.show()
 
     # meshgrid
-    X, Y, _ = np.meshgrid(
+    X, Y, Z = np.meshgrid(
         np.arange(0, np.shape(normals)[0], stride),
         np.arange(0, np.shape(normals)[1], stride),
-        np.arange(1)
+        np.arange(0, np.shape(normals)[2], stride)
     )
     X = X[..., 0]
     Y = Y[..., 0]
+    Z = Z[..., 0]
 
     '''
     =============
@@ -128,6 +129,22 @@ def show_results(albedo, normals, height_map, SE):
     fig = plt.figure()
     ax = fig.gca(projection='3d')
     ax.plot_surface(X, Y, H.T)
+
+    # u, v, w = ([], [], [])
+    # for row in normals:
+    #     for normal in row:
+    #         u.append(normal[0])
+    #         v.append(normal[1])
+    #         w.append(normal[2])
+
+    # print(f"u: {np.array(u).shape}\nv: {np.array(v).shape}\nw: {np.array(w).shape}")
+    # Make the direction data for the arrows
+    # u = np.sin(np.pi * X) * np.cos(np.pi * Y) * np.cos(np.pi * Y)
+    # v = -np.cos(np.pi * X) * np.sin(np.pi * Y) * np.cos(np.pi * Z)
+    # w = (np.sqrt(2.0 / 3.0) * np.cos(np.pi * X) * np.cos(np.pi * Y) *
+    #     np.sin(np.pi * Z))
+
+    # ax.quiver(X, Y, Z, u, v, w)
     plt.show()
 
     # plotting model geometry

@@ -5,7 +5,7 @@ from estimate_alb_nrm import estimate_alb_nrm
 from construct_surface import construct_surface
 from check_integrability import check_integrability
 from utils import load_face_images, load_syn_images, show_results
-IMAGE_PATH: str = './Lab1_Photometric_Color/photometrics_images/'
+IMAGE_PATH: str = './photometrics_images/'
 
 print('Part 1: Photometric Stereo\n')
 

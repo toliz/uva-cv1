@@ -39,7 +39,7 @@ def check_integrability(normals):
     """
     for x, row in enumerate(normals):
         for y, normal in enumerate(row):
-            SE[x][y] = ((1/normal[2])-(1/normal[2]))**2
+            SE[x][y] = (1/normal[2]+(1/normal[2]))**2
 
     return p, q, SE
 

@@ -3,7 +3,7 @@ import numpy as np
 from matplotlib import image
 
 
-def estimate_alb_nrm(image_stack, V, shadow_trick=False):
+def estimate_alb_nrm(image_stack, V, shadow_trick=True):
     # COMPUTE_SURFACE_GRADIENT compute the gradient of the surface
     # INPUT:
     # image_stack : the images of the desired surface stacked
@@ -45,18 +45,18 @@ def estimate_alb_nrm(image_stack, V, shadow_trick=False):
             I = np.diag(i)  # noqa # 5x5 matrix
 
             # 4. Solve I*V*g(x, y) = I*i, where V is a 5x3
-            g = None
-            if shadow_trick:
-                g = np.linalg.lstsq(np.dot(I, V), np.dot(I, i))[0]
-            else:
-                g = np.linalg.lstsq(V, i)[0]
+            # g = None
+            # if shadow_trick:
+            g = np.linalg.lstsq(np.dot(I, V), np.dot(I, i))[0]
+            # else:
+            #     g = np.linalg.lstsq(np.dot(I, V), np.dot(I, i))[0]
 
             # Calculate magnitude of vector g
             magnitude_g = math.sqrt(np.sum(g**2))
 
             # 5. Save |g| in albedo, and normal at index (x, y)
             albedo[x][y] = magnitude_g
-            normal[x][y] = g / magnitude_g
+            normal[x][y] = g/magnitude_g
 
     return albedo, normal
 
