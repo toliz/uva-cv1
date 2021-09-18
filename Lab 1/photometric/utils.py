@@ -90,6 +90,7 @@ def show_results(albedo, normals, height_map, SE):
 
     # showing albedo map
     fig = plt.figure()
+    fig.canvas.manager.set_window_title('Albedo Map')
     albedo_max = albedo.max()
     albedo_max = 1
     albedo = albedo / albedo_max
@@ -99,6 +100,7 @@ def show_results(albedo, normals, height_map, SE):
 
     # showing normals as three separate channels
     figure = plt.figure()
+    figure.canvas.manager.set_window_title('Normals as 3 separate channels')
     ax1 = figure.add_subplot(131)
     ax1.imshow(normals[..., 0])
     ax2 = figure.add_subplot(132)
@@ -127,6 +129,7 @@ def show_results(albedo, normals, height_map, SE):
     # plotting the SE
     H = SE[::stride, ::stride]
     fig = plt.figure()
+    fig.canvas.manager.set_window_title('SE (Squared Errors)')
     ax = fig.gca(projection='3d')
     ax.plot_surface(X, Y, H.T)
 
@@ -137,7 +140,9 @@ def show_results(albedo, normals, height_map, SE):
     #         v.append(normal[1])
     #         w.append(normal[2])
 
-    # print(f"u: {np.array(u).shape}\nv: {np.array(v).shape}\nw: {np.array(w).shape}")
+    # print(
+    # f"u: {np.array(u).shape}\nv: {np.array(v).shape}\nw: {np.array(w).shape}"
+    # )
     # Make the direction data for the arrows
     # u = np.sin(np.pi * X) * np.cos(np.pi * Y) * np.cos(np.pi * Y)
     # v = -np.cos(np.pi * X) * np.sin(np.pi * Y) * np.cos(np.pi * Z)
@@ -150,6 +155,7 @@ def show_results(albedo, normals, height_map, SE):
     # plotting model geometry
     H = height_map[::stride, ::stride]
     fig = plt.figure()
+    fig.canvas.manager.set_window_title('Model Geometry')
     ax = fig.gca(projection='3d')
     ax.plot_surface(X, Y, H.T)
     plt.show()
