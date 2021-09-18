@@ -1,3 +1,4 @@
 # Ignore directories
 
+.DS_store
 __pycache__

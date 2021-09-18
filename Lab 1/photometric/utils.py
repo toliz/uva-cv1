@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 
-def load_syn_images(image_dir='./SphereGray5/', channel=0):
+def load_syn_images(image_dir = './SphereGray5/', channel = 0):
     files = os.listdir(image_dir)
     # files = [os.path.join(image_dir, f) for f in files]
     nfiles = len(files)
@@ -26,7 +26,7 @@ def load_syn_images(image_dir='./SphereGray5/', channel=0):
             h, w = im.shape
             print('Image size (H*W): %d*%d' % (h, w))
             image_stack = np.zeros([h, w, nfiles], dtype=int)
-            V = np.zeros([nfiles, 3], dtype=np.float64)
+            V = np.zeros([nfiles, 3], dtype = np.float64)
 
         image_stack[:, :, i] = im
 
@@ -48,7 +48,7 @@ def load_syn_images(image_dir='./SphereGray5/', channel=0):
     return image_stack, scriptV
 
 
-def load_face_images(image_dir='./yaleB02/'):
+def load_face_images(image_dir = './yaleB02/'):
     num_images = 64
     filename = os.path.join(image_dir, 'yaleB02_P00_Ambient.pgm')
     ambient_image = cv2.imread(filename, -1)
