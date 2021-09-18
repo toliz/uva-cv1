@@ -1,17 +1,21 @@
 import os
 import cv2
 import numpy as np
+
 from estimate_alb_nrm import estimate_alb_nrm
 from construct_surface import construct_surface
 from check_integrability import check_integrability
 from utils import load_face_images, load_syn_images, show_results
+
 IMAGE_PATH: str = './photometrics_images/'
 
-print('Part 1: Photometric Stereo\n')
+print('==========================')
+print('Part 1: Photometric Stereo')
+print('==========================\n')
 
 
 def photometric_stereo(
-    image_dir: str = IMAGE_PATH+'SphereGray5/'
+    image_dir: str = IMAGE_PATH + 'SphereGray5/'
 ):
     # obtain many images in a fixed view under different illumination
     print(f'Loading images {image_dir}...\n')
@@ -39,7 +43,7 @@ def photometric_stereo(
 
 
 def photometric_stereo_face(
-    image_dir: str = IMAGE_PATH+'yaleB02'
+    image_dir: str = IMAGE_PATH + 'yaleB02'
 ):
     print(f'Loading images {image_dir}...\n')
     [image_stack, scriptV] = load_face_images(image_dir)
@@ -57,7 +61,7 @@ def photometric_stereo_face(
     SE[SE <= threshold] = float('nan')  # for good visualization
 
     # compute the surface height
-    height_map = construct_surface(p, q)
+    height_map = construct_surface(p, q, type='average')
 
     # show results
     show_results(albedo, normals, height_map, SE)

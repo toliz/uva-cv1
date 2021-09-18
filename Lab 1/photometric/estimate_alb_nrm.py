@@ -1,5 +1,6 @@
 import math
 import numpy as np
+
 from matplotlib import image
 
 
@@ -18,45 +19,34 @@ def estimate_alb_nrm(image_stack, V, shadow_trick=True):
 
     h, w, _ = image_stack.shape
 
-    # create arrays for
+    # Create albedo and nomral arrays
     albedo = np.zeros([h, w])  # albedo (1 channel)
     normal = np.zeros([h, w, 3])  # normal (3 channels)
-    """
-    ================
-    Your code here
-    ================
-    for each point in the image array
-        stack image values into a vector i
-        construct the diagonal matrix scriptI
-        solve scriptI * scriptV * g = scriptI * i to obtain g for this point
-        albedo at this point is |g|
-        normal at this point is g / |g|
-    """
 
-    # 1. The stack is a 512*512, where each (x,y) contains a
-    # list of 5 values (brightness). One for each
-    # image (since we have 5 images)
+    # The stack is a MxNxK tensor, where each entry contains a
+    # list of K brightness values (one for each image)
     for x, row in enumerate(image_stack):
-        for y, values in enumerate(row):  # 2. Stack image values
-            # 2. Stack image values into a vector i
-            i = np.array(values)  # 5x1 vector
+        for y, values in enumerate(row):  # brightness values
+            # Stack image values into a vector i
+            i = np.array(values)  # Kx1 vector
 
-            # 3. Construct the diagonal matrix scriptI
-            I = np.diag(i)  # noqa # 5x5 matrix
+            g = None
+            if shadow_trick:
+                # Construct the diagonal matrix I
+                I = np.diag(i)  # noqa # KxK matrix
 
-            # 4. Solve I*V*g(x, y) = I*i, where V is a 5x3
-            # g = None
-            # if shadow_trick:
-            g = np.linalg.lstsq(np.dot(I, V), np.dot(I, i))[0]
-            # else:
-            #     g = np.linalg.lstsq(np.dot(I, V), np.dot(I, i))[0]
+                # Solve I*V*g(x, y) = I*i, where V is a Kx3                
+                g = np.linalg.lstsq(I @ V, I @ i, rcond=None)[0]
+            else:
+                # Solve V*g(x, y) = i, where V is a Kx3
+                g, _, _, _ = np.linalg.lstsq(V, i)
 
             # Calculate magnitude of vector g
-            magnitude_g = math.sqrt(np.sum(g**2))
+            magnitude_g = np.linalg.norm(g, ord=2)
 
-            # 5. Save |g| in albedo, and normal at index (x, y)
-            albedo[x][y] = magnitude_g
-            normal[x][y] = g/magnitude_g
+            # Save |g| in albedo, and normal at index (x, y)
+            albedo[x, y] = magnitude_g
+            normal[x, y] = g / (magnitude_g + 1e-10) # to avoid NaN
 
     return albedo, normal
 
