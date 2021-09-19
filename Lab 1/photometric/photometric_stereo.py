@@ -20,6 +20,7 @@ def photometric_stereo(
     # obtain many images in a fixed view under different illumination
     print(f'Loading images {image_dir}...\n')
     [image_stack, scriptV] = load_syn_images(image_dir)
+
     [h, w, n] = image_stack.shape
     print('Finish loading %d images.\n' % n)
 

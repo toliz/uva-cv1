@@ -11,21 +11,23 @@ def check_integrability(normals):
     # Initalization
     p = np.zeros(normals.shape[:2])  # MxN matrix
     q = np.zeros(normals.shape[:2])  # MxN matrix
-    SE = np.zeros(normals.shape[:2]) # MxN matrix
+    SE = np.zeros(normals.shape[:2])  # MxN matrix
 
-    for x, row in enumerate(normals):
-        for y, normal in enumerate(row):
-            p[x, y] = normal[0] / (normal[2] + 1e-10)
-            q[x, y] = normal[1] / (normal[2] + 1e-10)
+    h, w = p.shape
+
+    for x in range(w):
+        for y in range(h):
+            normal = normals[y][x]
+            p[y][x] = normal[0]/(normal[2] + 1e-10)
+            q[y][x] = normal[1]/(normal[2] + 1e-10)
 
     # Change NaN to 0
     p[p != p] = 0
     q[q != q] = 0
 
-    for x, row in enumerate(normals):
-        for y, normal in enumerate(row):
-            if x < p.shape[0] - 1 and y < p.shape[1] - 1: # avoid boundaries
-                SE[x, y] = ( (p[x, y+1] - p[x, y]) - (q[x+1, y] - q[x, y]) ) ** 2
+    for x in range(1, w):
+        for y in range(1, h):
+            SE[y-1][x-1] = ((p[y][x] - p[y-1][x]) + (q[y][x] - q[y][x-1]))**2
 
     return p, q, SE
 

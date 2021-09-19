@@ -25,8 +25,11 @@ def estimate_alb_nrm(image_stack, V, shadow_trick=True):
 
     # The stack is a MxNxK tensor, where each entry contains a
     # list of K brightness values (one for each image)
-    for x, row in enumerate(image_stack):
-        for y, values in enumerate(row):  # brightness values
+    for x in range(w):
+        for y in range(h):
+            # brightness values
+            values = image_stack[y][x]  # Kx1 vector
+
             # Stack image values into a vector i
             i = np.array(values)  # Kx1 vector
 
@@ -35,7 +38,7 @@ def estimate_alb_nrm(image_stack, V, shadow_trick=True):
                 # Construct the diagonal matrix I
                 I = np.diag(i)  # noqa # KxK matrix
 
-                # Solve I*V*g(x, y) = I*i, where V is a Kx3                
+                # Solve I*V*g(x, y) = I*i, where V is a Kx3
                 g = np.linalg.lstsq(I @ V, I @ i, rcond=None)[0]
             else:
                 # Solve V*g(x, y) = i, where V is a Kx3
@@ -45,8 +48,8 @@ def estimate_alb_nrm(image_stack, V, shadow_trick=True):
             magnitude_g = np.linalg.norm(g, ord=2)
 
             # Save |g| in albedo, and normal at index (x, y)
-            albedo[x, y] = magnitude_g
-            normal[x, y] = g / (magnitude_g + 1e-10) # to avoid NaN
+            albedo[y][x] = magnitude_g
+            normal[y][x] = g / (magnitude_g + 1e-10)  # to avoid NaN
 
     return albedo, normal
 
