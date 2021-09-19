@@ -1,4 +1,5 @@
 import os
+import warnings
 import numpy as np
 import random
 import glob
@@ -130,8 +131,10 @@ def show_results(albedo, normals, height_map, SE):
     H = SE[::stride, ::stride]
     fig = plt.figure()
     fig.canvas.manager.set_window_title('SE (Squared Errors)')
-    ax = fig.gca(projection='3d')
-    ax.plot_surface(X, Y, H.T)
+    ax = fig.add_subplot(projection='3d') #ax = fig.gca(projection='3d')
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore') # ignore NaN value warning
+        ax.plot_surface(X, Y, H.T)
 
     # u, v, w = ([], [], [])
     # for row in normals:
@@ -156,6 +159,6 @@ def show_results(albedo, normals, height_map, SE):
     H = height_map[::stride, ::stride]
     fig = plt.figure()
     fig.canvas.manager.set_window_title('Model Geometry')
-    ax = fig.gca(projection='3d')
+    ax = fig.add_subplot(projection='3d') #ax = fig.gca(projection='3d')
     ax.plot_surface(X, Y, H.T)
     plt.show()
