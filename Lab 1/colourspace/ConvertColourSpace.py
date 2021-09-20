@@ -23,6 +23,7 @@ def ConvertColourSpace(input_image, colourspace):
 
     if colourspace.lower() == 'opponent':
         # fill in the rgb2opponent function
+        input_image = cv2.normalize(input_image, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U)
         new_image = rgbConversions.rgb2opponent(input_image)
 
     elif colourspace.lower() == 'rgb':
@@ -31,14 +32,18 @@ def ConvertColourSpace(input_image, colourspace):
 
     elif colourspace.lower() == 'hsv':
         # use built-in function from opencv
-        pass
+        # use open cv 
+        input_image = cv2.normalize(input_image, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U)
+        new_image = cv2.cvtColor(input_image, cv2.COLOR_RGB2HSV)
+
 
     elif colourspace.lower() == 'ycbcr':
         # use built-in function from opencv
-        pass
+        new_image = cv2.cvtColor(input_image, cv2.COLOR_RGB2YCR_CB)
 
     elif colourspace.lower() == 'gray':
         # fill in the rgb2opponent function
+        #doubt 
         new_image = rgbConversions.rgb2grays(input_image)
 
     else:
@@ -52,11 +57,11 @@ def ConvertColourSpace(input_image, colourspace):
 
 if __name__ == '__main__':
     # Replace the image name with a valid image
-    img_path = 'test.png'
+    img_path = 'test.jpg'
     # Read with opencv
     I = cv2.imread(img_path)
     # Convert from BGR to RGB
     # This is a shorthand.
     I = I[:, :, ::-1]
 
-    out_img = ConvertColourSpace(I, 'opponent.png')
+    out_img = ConvertColourSpace(I, 'hsv')
