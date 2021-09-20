@@ -27,7 +27,7 @@ def check_integrability(normals):
 
     for x in range(1, w):
         for y in range(1, h):
-            SE[y-1][x-1] = ((p[y][x] - p[y-1][x]) + (q[y][x] - q[y][x-1]))**2
+            SE[y-1][x-1] = ((p[y][x] - p[y-1][x]) - (q[y][x] - q[y][x-1]))**2
 
     return p, q, SE
 
