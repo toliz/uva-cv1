@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def createGabor( sigma, theta, lamda, psi, gamma ):
+def createGabor(sigma, theta, lamda, psi, gamma):
 #CREATEGABOR Creates a complex valued Gabor filter.
 #   myGabor = createGabor( sigma, theta, lamda, psi, gamma ) generates
 #   Gabor kernels.  
@@ -49,20 +49,17 @@ def createGabor( sigma, theta, lamda, psi, gamma ):
     rot_x = rot_XY[0,:]
     rot_y = rot_XY[1,:]
 
-
     # Create the Gaussian envelope.
-    # \\ IMPLEMENT the helper function createGauss.
     gaussianEnv = createGauss(rot_x, rot_y, gamma, sigma)
 
     # Create the orthogonal carrier signals.
-    # \\ IMPLEMENT the helper functions createCos and createSin.
     cosCarrier = createCos(rot_x, lamda, psi)
     sinCarrier = createSin(rot_x, lamda, psi)
 
     # Modulate (multiply) Gaussian envelope with the carriers to compute 
     # the real and imaginary components of the complex Gabor filter. 
-    myGabor_real = None # \\TODO: modulate gaussianEnv with cosCarrier
-    myGabor_imaginary = None  # \\TODO: modulate gaussianEnv with sinCarrier
+    myGabor_real = np.dot(gaussianEnv, cosCarrier) # modulate gaussianEnv with cosCarrier
+    myGabor_imaginary = np.dot(gaussianEnv, sinCarrier)  # modulate gaussianEnv with sinCarrier
 
     # Pack myGabor_real and myGabor_imaginary into myGabor.
     h, w = myGabor_real.shape
@@ -94,7 +91,8 @@ def generateRotationMatrix(theta):
     # Returns the rotation matrix. 
     # \\ Hint: https://en.wikipedia.org/wiki/Rotation_matrix \\
     # Rotation matrix which fits gabor equation given theta.
-    rotMat = None 
+    cos, sin = np.cos(theta), np.sin(theta)
+    rotMat = np.array(((cos, -sin), (sin, cos)))
 
     return rotMat
 
@@ -102,7 +100,8 @@ def generateRotationMatrix(theta):
 def createCos(rot_x, lamda, psi):
     # ----------------------------------------------------------
     # Returns the 2D cosine carrier. 
-    cosCarrier = None  # \\TODO: Implement the cosine given rot_x, lamda and psi.
+    print(rot_x)
+    cosCarrier = [np.cos(2*np.pi*(x/lamda) + psi) for x in rot_x]
 
     # Reshape the vector representation to matrix.
     cosCarrier = np.reshape(cosCarrier, (np.int32(np.sqrt(len(cosCarrier))), -1))
@@ -113,7 +112,7 @@ def createCos(rot_x, lamda, psi):
 def createSin(rot_x, lamda, psi):
     # ----------------------------------------------------------
     # Returns the 2D sine carrier. 
-    sinCarrier = None  # \\TODO: Implement the sine given rot_x, lamda and psi.
+    sinCarrier = [np.sin(2*np.pi*(x/lamda) + psi) for x in rot_x]
 
     # Reshape the vector representation to matrix.
     sinCarrier = np.reshape(sinCarrier, (np.int32(np.sqrt(len(sinCarrier))), -1))
@@ -124,9 +123,23 @@ def createSin(rot_x, lamda, psi):
 def createGauss(rot_x, rot_y, gamma, sigma):
     # ----------------------------------------------------------
     # Returns the 2D Gaussian Envelope. 
-    gaussEnv = None  # \\TODO: Implement the Gaussian envelope.
+    gaussEnv = [
+        np.power(
+            np.e,
+            -((x**2 + (gamma**2 * rot_y[i]))/(2*sigma**2))
+        ) for i, x in enumerate(rot_x)
+    ]
 
     # Reshape the vector representation to matrix.
     gaussEnv = np.reshape(gaussEnv, (np.int32(np.sqrt(len(gaussEnv))), -1))
 
     return gaussEnv
+
+
+if __name__ == "__main__":
+    sigma = 2
+    theta = 0.5
+    lamda = 0.75
+    psi = 2
+    gamma = 1.4
+    createGabor(sigma, theta, lamda, psi, gamma)

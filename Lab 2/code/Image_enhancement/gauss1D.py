@@ -11,9 +11,9 @@ def gauss1D(sigma , kernel_size):
 
     # Create Filter/Kernel
 	G_sigma = lambda x: (
-		np.e**-(x**2/(2*(sigma**2)))
+		(np.e**-(x**2/(2*(sigma**2)))
 		/
-		(sigma*np.sqrt(2*np.pi))
+		(sigma*np.sqrt(2*np.pi)))
 	)
 
 	# Create the set of x values
@@ -22,6 +22,8 @@ def gauss1D(sigma , kernel_size):
 		stop=np.fix(kernel_size/2)+1,  # Exclusive, so increase set by 1 element
 		step=1
 	)
+
+	print(range_of_x_values)
 	
 	# Calculate the 1D Gaussian kernel Vector
 	G = np.array([[G_sigma(x)] for x in range_of_x_values])
