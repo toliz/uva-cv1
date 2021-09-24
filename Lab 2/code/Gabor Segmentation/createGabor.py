@@ -58,8 +58,8 @@ def createGabor(sigma, theta, lamda, psi, gamma):
 
     # Modulate (multiply) Gaussian envelope with the carriers to compute 
     # the real and imaginary components of the complex Gabor filter. 
-    myGabor_real = np.dot(gaussianEnv, cosCarrier) # modulate gaussianEnv with cosCarrier
-    myGabor_imaginary = np.dot(gaussianEnv, sinCarrier)  # modulate gaussianEnv with sinCarrier
+    myGabor_real = gaussianEnv * cosCarrier # modulate gaussianEnv with cosCarrier
+    myGabor_imaginary = gaussianEnv * sinCarrier  # modulate gaussianEnv with sinCarrier
 
     # Pack myGabor_real and myGabor_imaginary into myGabor.
     h, w = myGabor_real.shape
@@ -100,8 +100,7 @@ def generateRotationMatrix(theta):
 def createCos(rot_x, lamda, psi):
     # ----------------------------------------------------------
     # Returns the 2D cosine carrier. 
-    print(rot_x)
-    cosCarrier = [np.cos(2*np.pi*(x/lamda) + psi) for x in rot_x]
+    cosCarrier = np.cos(2 * np.pi * rot_x / lamda + psi)
 
     # Reshape the vector representation to matrix.
     cosCarrier = np.reshape(cosCarrier, (np.int32(np.sqrt(len(cosCarrier))), -1))
@@ -112,7 +111,7 @@ def createCos(rot_x, lamda, psi):
 def createSin(rot_x, lamda, psi):
     # ----------------------------------------------------------
     # Returns the 2D sine carrier. 
-    sinCarrier = [np.sin(2*np.pi*(x/lamda) + psi) for x in rot_x]
+    sinCarrier = np.sin(2*np.pi * rot_x / lamda + psi)
 
     # Reshape the vector representation to matrix.
     sinCarrier = np.reshape(sinCarrier, (np.int32(np.sqrt(len(sinCarrier))), -1))
@@ -123,12 +122,10 @@ def createSin(rot_x, lamda, psi):
 def createGauss(rot_x, rot_y, gamma, sigma):
     # ----------------------------------------------------------
     # Returns the 2D Gaussian Envelope. 
-    gaussEnv = [
-        np.power(
-            np.e,
-            -((x**2 + (gamma**2 * rot_y[i]))/(2*sigma**2))
-        ) for i, x in enumerate(rot_x)
-    ]
+    gaussEnv = np.power(
+        np.e,
+        -((rot_x**2 + gamma**2 * rot_y**2) / (2 * sigma**2))
+    )
 
     # Reshape the vector representation to matrix.
     gaussEnv = np.reshape(gaussEnv, (np.int32(np.sqrt(len(gaussEnv))), -1))
@@ -137,9 +134,9 @@ def createGauss(rot_x, rot_y, gamma, sigma):
 
 
 if __name__ == "__main__":
-    sigma = 2
-    theta = 0.5
-    lamda = 0.75
-    psi = 2
-    gamma = 1.4
+    sigma = 5
+    theta = 0
+    lamda = 1
+    psi = 0
+    gamma = 1
     createGabor(sigma, theta, lamda, psi, gamma)
