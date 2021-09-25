@@ -4,8 +4,8 @@ import math
 import numpy as np
 import time
 from sklearn.decomposition import PCA
-from creatGabor import createGabor
-
+from createGabor import createGabor
+#use create gabor function already
 
 
 # Hyperparameters
@@ -53,7 +53,7 @@ else:
 # Image adjustments
 img = cv2.resize(img, (0, 0), fx=resize_factor, fy=resize_factor)
 img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-
+#img = img/(255.0)
 # Display image
 plt.figure()
 plt.title(f'Input image: {image_id}')
@@ -143,10 +143,14 @@ print(f'---------------------------------------')
 featureMaps = []
 
 for gaborFilter in gaborFilterBank:
-    # gaborFilter["filterPairs"] has two elements. One is related to the real part 
+    # gaborFilter["filterPairs"] has two elements. One is related to the real part     
+    #myGabor[:,:,0] = myGabor_real
+    #myGabor[:,:,1] = myGabor_imaginary
     # of the Gabor Filter and the other one is the imagineray part.
-    real_out = None  # \\TODO: filter the grayscale input with real part of the Gabor
-    imag_out = None  # \\TODO: filter the grayscale input with imaginary part of the Gabor
+    #print('------------', gaborFilter.shape)
+    imgs = gaborFilter["filterPairs"]
+    real_out = imgs[:,:,0]  # \\TODO: filter the grayscale input with real part of the Gabor
+    imag_out = imgs[:,:,1]  # \\TODO: filter the grayscale input with imaginary part of the Gabor
     featureMaps.append(np.stack((real_out, imag_out), 2))
     
     # Visualize the filter responses if you wish.
@@ -173,7 +177,7 @@ featureMags = []
 for i, fm in enumerate(featureMaps):
     real_part = fm[...,0]
     imag_part = fm[...,1]
-    mag = None  # \\TODO: Compute the magnitude here
+    mag = np.sqrt((real_part*real_part) + (imag_part * imag_part))   # \\TODO: Compute the magnitude here
     featureMags.append(mag)
     
     # Visualize the magnitude response if you wish.
@@ -202,6 +206,11 @@ for i, fm in enumerate(featureMaps):
 features = np.zeros(shape=(numRows, numCols, len(featureMags)))
 if smoothingFlag:
     pass
+    #gaussian filter
+    for i, fmag in enumerate(featureMags):
+        #do smoothing
+        fmag = cv2.GaussianBlur(fmag,(9,9),0)
+        features[:,:,i] = fmag
     # \\TODO:
     #FOR_LOOP
         # i)  filter the magnitude response with appropriate Gaussian kernels
@@ -224,8 +233,9 @@ features = np.reshape(features, newshape=(numRows * numCols, -1))
 # Standardize features. 
 # \\ Hint: see http://ufldl.stanford.edu/wiki/index.php/Data_Preprocessing for more information.
 
-features = None  # \\ TODO: i)  Implement standardization on matrix called features.
-                 #          ii) Return the standardized data matrix.
+features  = (features - np.mean(features, axis=0)) / np.std(features, axis=0)  
+# \\ TODO: i)  Implement standardization on matrix called features.
+#          ii) Return the standardized data matrix.
 
 
 # (Optional) Visualize the saliency map using the first principal component 
@@ -247,7 +257,9 @@ plt.show()
 # \\ Hint-2: use the parameter k defined in the first section when calling
 #            sklearn's built-in kmeans function.
 tic = time.time()
-pixLabels = None  # \\TODO: Return cluster labels per pixel
+#k-means 
+kmeans = KMeans(n_clusters=2, random_state=0).fit(features)
+pixLabels = kmeans.labels_  # \\TODO: Return cluster labels per pixel
 ctime = time.time() - tic
 print(f'Clustering completed in {ctime} seconds.')
 
