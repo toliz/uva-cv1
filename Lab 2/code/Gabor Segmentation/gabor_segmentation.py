@@ -53,7 +53,7 @@ else:
 # Image adjustments
 img = cv2.resize(img, (0, 0), fx=resize_factor, fy=resize_factor)
 img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-#img = img/(255.0)
+img = img/(255.0)
 # Display image
 plt.figure()
 plt.title(f'Input image: {image_id}')
@@ -80,7 +80,8 @@ lambdaMax = np.sqrt(abs(numRows)**2 + abs(numCols)**2)
 # Specify the carrier wavelengths.  
 # (or the central frequency of the carrier signal, which is 1/lambda)
 n = np.floor(np.log2(lambdaMax/lambdaMin))
-lambdas = 2**np.arange(0, (n-2)+1) * lambdaMin
+#lambdas = 2**np.arange(5, (n-2)+1) * lambdaMin
+lambdas = [7,8,9,10]
 
 # Define the set of orientations for the Gaussian envelope.
 dTheta       = 2 * np.pi/8                  # \\ the step size
@@ -88,7 +89,7 @@ orientations = np.arange(0, np.pi+dTheta, dTheta)
 
 # Define the set of sigmas for the Gaussian envelope. Sigma here defines 
 # the standard deviation, or the spread of the Gaussian. 
-sigmas = np.array([1,2])
+sigmas = np.array([5,6,7,8])
 
 # Now you can create the filterbank. We provide you with a Python list
 # called gaborFilterBank in which we will hold the filters and their
@@ -119,6 +120,9 @@ for lmbda in lambdas:
             gaborFilterBank.append(filter_config)
 ctime = time.time() - tic
 
+print('Sigma values', sigmas)
+print('Theta', theta)
+print('Lambdas', lambdas)
 print('--------------------------------------\n \t\tDetails\n--------------------------------------')
 print(f'Total number of filters       : {len(gaborFilterBank)}')
 print(f'Number of scales (sigma)      : {len(sigmas)}')
@@ -149,11 +153,18 @@ for gaborFilter in gaborFilterBank:
     # of the Gabor Filter and the other one is the imagineray part.
     #print('------------', gaborFilter.shape)
     imgs = gaborFilter["filterPairs"]
-    real_out = imgs[:,:,0]  # \\TODO: filter the grayscale input with real part of the Gabor
-    imag_out = imgs[:,:,1]  # \\TODO: filter the grayscale input with imaginary part of the Gabor
+    #print('-----------imgs shape',imgs[:,:,0].shape)
+    real_out =  cv2.filter2D(img,cv2.CV_8UC3, imgs[:,:,0])
+    imag_out = cv2.filter2D(img, cv2.CV_8UC3, imgs[:,:,1])
+    #real_out = imgs[:,:,0]  # \\TODO: filter the grayscale input with real part of the Gabor
+    #imag_out = imgs[:,:,1]  # \\TODO: filter the grayscale input with imaginary part of the Gabor
+    #print('real and imag')
+    #print(real_out.shape)
+    #print(imag_out.shape)
     featureMaps.append(np.stack((real_out, imag_out), 2))
     
     # Visualize the filter responses if you wish.
+    #visFlag=0
     if visFlag:
         fig = plt.figure()
 
@@ -177,7 +188,8 @@ featureMags = []
 for i, fm in enumerate(featureMaps):
     real_part = fm[...,0]
     imag_part = fm[...,1]
-    mag = np.sqrt((real_part*real_part) + (imag_part * imag_part))   # \\TODO: Compute the magnitude here
+    mag = np.sqrt((np.power(real_part,2) + np.power(imag_part,2)))
+    #print('Mag', mag.shape)   # \\TODO: Compute the magnitude here
     featureMags.append(mag)
     
     # Visualize the magnitude response if you wish.
@@ -204,12 +216,17 @@ for i, fm in enumerate(featureMaps):
 #          using an appropriate first order Gaussian kernel.
 # \\ Hint: cv2 filter2D function is helpful here.   
 features = np.zeros(shape=(numRows, numCols, len(featureMags)))
+#smoothingFlag=0
 if smoothingFlag:
-    pass
+    #pass
     #gaussian filter
     for i, fmag in enumerate(featureMags):
         #do smoothing
-        fmag = cv2.GaussianBlur(fmag,(9,9),0)
+        #print('---fmag',fmag.shape)
+        #print('feautres', features[:,:,i].shape)
+        #print(fmag.shape)
+        fmag = fmag.astype('float32')
+        fmag = cv2.GaussianBlur(fmag,(15,15),cv2.BORDER_DEFAULT)
         features[:,:,i] = fmag
     # \\TODO:
     #FOR_LOOP
@@ -250,6 +267,7 @@ plt.title(f'Pixel representation projected onto first PC')
 plt.imshow(feature2DImage, cmap='gray')
 plt.axis("off") 
 plt.show()
+from sklearn.cluster import KMeans
 
 # Apply k-means algorithm to cluster pixels using the data matrix,
 # features. 
@@ -279,7 +297,8 @@ plt.show()
 Aseg1 = np.zeros_like(img)
 Aseg2 = np.zeros_like(img)
 BW = pixLabels == 2  # check for the value of your labels in pixLabels (could be 1 or 0 instead of 2)
-BW = np.repeat(BW[:, :, np.newaxis], 3, axis=2) # do this only if you have 3 channels in the img
+#BW = np.repeat(BW[:, :, np.newaxis], 3, axis=2) # do this only if you have 3 channels in the img
+
 Aseg1[BW] = img[BW]
 Aseg2[~BW] = img[~BW]
 
@@ -289,4 +308,32 @@ plt.imshow(Aseg1, 'gray', interpolation='none')
 plt.imshow(Aseg2, 'jet',  interpolation='none', alpha=0.7)
 plt.axis("off")
 plt.show()
+
+#use a plot function to save results. 
+
+
+# fig, ax = plt.subplots(1,4, figsize=(20,15))
+
+# # use the created array to output your multiple images. In this case I have stacked 4 images vertically
+# for ax1 in ax:
+#     ax1.set_xticks([])
+#     ax1.set_yticks([])
+# #plt.title(f'Input image: {image_id}')
+# #plt.imshow(img, cmap='gray')
+# ax[0].imshow(img, cmap='gray')
+# ax[1].imshow(feature2DImage, cmap='gray')
+# ax[2].imshow(pixLabels)
+
+# ax[3].imshow(Aseg1, 'jet', interpolation='none')
+# ax[4].imshow(Aseg2,'jet',  interpolation='none', alpha=0.7)
+
+# ax[0].set_title("Input Image")
+# ax[1].set_title("Sobel X")
+# ax[2].set_title("Sobel Y")
+# ax[3].set_title("Sobel Magnitude")
+# ax[4].set_title("Sobel Direction")
+
+
+# #fig.savefig('./Output_sobel.eps', format='eps', dpi=300, bbox_inches='tight')
+# fig.savefig('Output_sobel.jpg', dpi=300, bbox_inches='tight')
 
