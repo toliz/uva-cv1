@@ -1,7 +1,7 @@
-def compute_gradient(image):
-    print('Not implemented\n')
-    return Gx, Gy, im_magnitude,im_direction
-import matplotlib.pyplot as plt
+# def compute_gradient(image):
+#     print('Not implemented\n')
+#     return Gx, Gy, im_magnitude,im_direction
+# import matplotlib.pyplot as plt
 
 
 import numpy as np
@@ -9,68 +9,48 @@ from scipy.signal import convolve2d
 import cv2 
 # Load sample data
 img = cv2.imread('./images/image1.jpg')
+image_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 image = img
 
-#define horizontal and Vertical sobel kernels
-Gx = np.array([[-1, 0, 1],[-2, 0, 2],[-1, 0, 1]])
-Gy = np.array([[-1, -2, -1],[0, 0, 0],[1, 2, 1]])
+#call function here 
+def compute_gradient(image):
 
-image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-image_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    #define horizontal and Vertical sobel kernels
+    Gx = np.array([[-1, 0, 1],[-2, 0, 2],[-1, 0, 1]])
+    Gy = np.array([[-1, -2, -1],[0, 0, 0],[1, 2, 1]])
 
-
-# #define kernal convolution function
-# # with image X and filter F
-# def convolve(X, F):
-#     # height and width of the image
-#     X_height = X.shape[0]
-#     X_width = X.shape[1]
-    
-#     # height and width of the filter
-#     F_height = F.shape[0]
-#     F_width = F.shape[1]
-    
-#     H = (F_height - 1) // 2
-#     W = (F_width - 1) // 2
-    
-#     #output numpy matrix with height and width
-#     out = np.zeros((X_height, X_width))
-#     #iterate over all the pixel of image X
-#     for i in np.arange(H, X_height-H):
-#         for j in np.arange(W, X_width-W):
-#             sum = 0
-#             #iterate over the filter
-#             for k in np.arange(-H, H+1):
-#                 for l in np.arange(-W, W+1):
-#                     #get the corresponding value from image and filter
-#                     a = X[i+k, j+l]
-#                     w = F[H+k, W+l]
-#                     sum += (w * a)
-#             out[i,j] = sum
-#     #return convolution  
-#     return out
+    image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    image_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
 
-#normalizing the vectors
+    #normalizing the vectors
+    sob_x = convolve2d(image, Gx) / 8.0
+    sob_y = convolve2d(image, Gy) / 8.0
+
+    cv2.imwrite('Sobx.jpg', sob_x)
+    cv2.imwrite('Soby.jpg', sob_y)
+
+    sob_out = np.sqrt(np.power(sob_x, 2) + np.power(sob_y, 2))
+    sob_out = (sob_out / np.max(sob_out)) * 255
+    sob_direct = np.arctan2(sob_y, sob_x) * (180 / np.pi) % 180
+
+    #output images
+    cv2.imwrite('sobel_mag.jpg', sob_out)
+    cv2.imwrite('sobel_direction.jpg', sob_direct)
+
+return Gx, Gy, sob_out, sob_direct
+#display function 
+
+#function call 
+Gx, Gy, sob_out, sob_direct =  compute_gradient(image)
+
+#compute again 
 sob_x = convolve2d(image, Gx) / 8.0
 sob_y = convolve2d(image, Gy) / 8.0
 
-cv2.imwrite('Sobx.jpg', sob_x)
-cv2.imwrite('Soby.jpg', sob_y)
-
-#calculate the gradient magnitude of vectors
 sob_out = np.sqrt(np.power(sob_x, 2) + np.power(sob_y, 2))
-# mapping values from 0 to 255
 sob_out = (sob_out / np.max(sob_out)) * 255
-
 sob_direct = np.arctan2(sob_y, sob_x) * (180 / np.pi) % 180
-
-#output images
-cv2.imwrite('sobel_mag.jpg', sob_out)
-cv2.imwrite('sobel_direction.jpg', sob_direct)
-
-
-#display function 
 
 fig, ax = plt.subplots(1,5, figsize=(15,15))
 

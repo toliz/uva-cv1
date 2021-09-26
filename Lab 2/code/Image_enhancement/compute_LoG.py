@@ -11,9 +11,9 @@ def compute_LoG(image, LOG_type):
     
 
     def dnorm(x, mu, sd):
-        c = 1 / (np.sqrt(2 * np.pi) * sd)
+        const = 1 / (np.sqrt(2 * np.pi) * sd)
         pow = np.exp(-np.power((x - mu) / sd, 2) / 2)
-        return  c * pow 
+        return  const * pow 
 
     def log_kernel(ksize, sig = 1):
         v = np.power(sig, 2)
@@ -32,9 +32,6 @@ def compute_LoG(image, LOG_type):
         return k2d
 
     def gauusian_edge(image, ksize, sig):
-        #choose degault parameters
-        #ksize= 11
-        #sigma = 1.5
         
         kernel_2D = log_kernel(ksize, sig=sig)
 
