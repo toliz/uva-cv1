@@ -7,10 +7,15 @@ from scipy.ndimage import gaussian_filter, rotate
 
 from scipy import signal
 
+img_fol = '/content/lab3-assignment/images/doll'
 
-img_fol = '/content/imgs/lab3-assignment/images/toy'
+img = os.listdir(img_fol)[0]
+img = cv2.imread(os.path.join(img_fol, img))
+w,h,_ = img.shape
 
-x_train = np.zeros(((len(os.listdir(img_fol))),240, 320), dtype = np.float32)
+
+
+x_train = np.zeros(((len(os.listdir(img_fol))),w, h), dtype = np.float32)
 imgs_path = []
 for i,img_file in enumerate(sorted(os.listdir(img_fol))):
   #print(img_file)
@@ -22,99 +27,132 @@ for i,img_file in enumerate(sorted(os.listdir(img_fol))):
   x_train[i] = img.astype(np.float32)
   #modify images for improvement
   x_train[i] = cv2.GaussianBlur(x_train[i],(5,5),cv2.BORDER_DEFAULT)
-  x_train[i] = cv2.bilateralFilter(x_train[i], 15, 90, 90)
+  #x_train[i] = cv2.bilateralFilter(x_train[i], 15, 90, 90)
   
   
 imgs_path = sorted(imgs_path)
 
 
+
 #define functions 
-def of_flow(im1, im2, window_size, min_quality=0.01):
-
-    c = 10000
-    d = 0.1
-    feature_list = cv2.goodFeaturesToTrack(old_frame, c, min_quality, d)
-
-    w = int(window_size/2)
-
-    im1 = im1 / 255
-    im2 = im2 / 255
-
-    #Convolve to get gradients w.r.to X, Y and T dimensions
-    kx = np.array([[-1, 1], [-1, 1]])
-    ky = np.array([[-1, -1], [1, 1]])
-    kt = np.array([[1, 1], [1, 1]])
-
-    fx = signal.convolve2d(old_frame,  kx)              #Gradient over X
-    fy = signal.convolve2d(old_frame,  ky)              #Gradient over Y
-    ft = signal.convolve2d(new_frame,  kt) - signal.convolve2d(old_frame,  kt)  #Gradient over Time
+def of_flow(img1, img2, w, min_quality=0.01):
 
 
-    u = np.zeros(old_frame.shape)
-    v = np.zeros(old_frame.shape)
+    c1 = cv2.goodFeaturesToTrack(img1, 10000, min_quality, 10)
 
-    for feature in feature_list:        #   for every corner
+    w = int(w/2)
+
+    img1 = img1 / 255
+    img2 = img2 / 255
+
+    k1 = np.array([[-1, 1], [-1, 1]])
+    k2 = np.array([[-1, -1], [1, 1]])
+    k3 = np.array([[1, 1], [1, 1]])
+
+
+    u = np.zeros_like(img1)
+    v = u
+
+    dx = signal.convolve2d(img1,  k1)             
+    dy = signal.convolve2d(img1,  k2)             
+    dt = signal.convolve2d(img2,  k3) - signal.convolve2d(img1,  k3)
+
+    #iterate only c1s
+    for c in c1:
             
-            j, i = feature.ravel()		#   get cordinates of the corners (i,j). They are stored in the order j, i
-            i, j = int(i), int(j)		#   i,j are floats initially
+            j, i = c.ravel()    
+            #convert into integers
+            i, j = int(i), int(j)   
 
-            I_x = fx[i-w:i+w+1, j-w:j+w+1].flatten()
-            I_y = fy[i-w:i+w+1, j-w:j+w+1].flatten()
-            I_t = ft[i-w:i+w+1, j-w:j+w+1].flatten()
+            d2x = dx[i-w:i+w+1, j-w:j+w+1].flatten()
+            d2y = dy[i-w:i+w+1, j-w:j+w+1].flatten()
+            d2t = dt[i-w:i+w+1, j-w:j+w+1].flatten()
 
-            b = np.reshape(I_t, (I_t.shape[0],1))
-            A = np.vstack((I_x, I_y)).T
+            B = np.reshape(d2t, (d2t.shape[0],1))
+            A = np.vstack((d2x, d2y)).T
 
-            U = np.matmul(np.linalg.pinv(A), b)
+            U = np.matmul(np.linalg.pinv(A), B)
 
             u[i,j] = U[0][0]
             v[i,j] = U[1][0]
  
     return (u,v)
 
+def calc_mag(u, v):
+    ct = 0.0
+    inc = 3
+    total = 0.0
 
-def draw_quiver2(u,v,beforeImg,i):
+    for i in range(0, u.shape[0], 8):
+        for j in range(0, u.shape[1],8):
+            fy = v[i,j] * inc
+            fx = u[i,j] * inc
+            ct += 1
+            calc = (fx**2 + fy**2)**0.5
+            total += calc
+
+    avg = total / ct
+
+    return avg
+
+def draw_quiver2(u,v,frame,i):
     count =i
     scale = 3
     #ax = plt.figure().gca()
     fig, (ax1) = plt.subplots(1, 1)
+    ax1.axis("Off")
 
-    ax1.imshow(beforeImg)
-    magnitudeAvg = get_magnitude(u, v)
+    canvas = plt.gca().figure.canvas
+    canvas.draw()
+
+    ax1.imshow(frame)
+    value = calc_mag(u, v)
 
     for i in range(0, u.shape[0], 8):
         for j in range(0, u.shape[1],8):
             dy = v[i,j] * scale
             dx = u[i,j] * scale
-            ax1.quiver(j,i,dx,dy, color='green')
+            calc = (dx**2 + dy**2)**0.5
+            if calc > value:
+              ax1.quiver(j,i,dx,dy, color='green')
 
 
     plt.draw()
     plt.show()
     plt.axis('off')
     ax1.axis("Off")
-    fig.savefig('/content/sample_data/temp.jpg', dpi=300, bbox_inches='tight')
+    fig.savefig('./temp.jpg', dpi=300, bbox_inches='tight')
     img_frame = cv2.imread('./temp.jpg')
-
-    
+    img_frame = cv2.cvtColor(img_frame, cv2.COLOR_BGR2RGB)
     return img_frame
 
-#start main function 
+
 
 #send first and second frame for tracking 
 img1 = x_train[0]
 movie = []
-for i in range(0,len(x_train)):
+for i in range(0,(len(x_train)-2)):
   print(i,i+1)
-  U, V = optical_flow( x_train[i], x_train[i+1], window_size=15, min_quality=0.01)
+  # modify images for of and blur 
+  U, V = of_flow( x_train[i], x_train[i+1], w=15, min_quality=0.01)
+  #got u, v for first set of image 0, image 1 
+  #now add it to a numpy array and plot it 
   frame = cv2.imread(imgs_path[i])
   frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
   line_color = (0, 255, 0) #  Green
   res = draw_quiver2(U,V,frame,i)
+
   movie.append(res)
 
-#use movie frame to convert to movie
+#use movie list to obtain movie 
 
 movie2 = np.stack(movie)
 
-video_mk("person_toy2.avi", movie2, fps=3)
+def _save_video(filename, array, fps=5):
+    f, height, width, c = array.shape
+    fourcc = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')
+    out = cv2.VideoWriter(filename, fourcc, fps, (width, height))
+    for i in range(f):
+        out.write(array[i, :, :, ::-1])
+
+_save_video("of_flow_output_video.avi", movie2, fps=3)
