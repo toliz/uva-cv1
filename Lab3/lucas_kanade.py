@@ -28,9 +28,9 @@ def lucas_kanade(img1, img2, w=15):
     It = img2 - img1
     
     # Lucas-Kanade algorithm
-    wid , hei = img1.shape
-    for x in range(w//2, wid - w//2, w):
-      for y in range(w//2, hei - w//2, w):
+    M , N = img1.shape
+    for x in range(w//2, M - w//2, w):
+      for y in range(w//2, N - w//2, w):
 
         Ix_local = (Ix[x - w//2 : x + w//2+1, y - w//2 : y + w//2+1]).flatten()
         Iy_local = (Iy[x - w//2 : x + w//2+1, y - w//2 : y + w//2+1]).flatten()
