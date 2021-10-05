@@ -56,8 +56,6 @@ if __name__ == '__main__':
         img2 = mpimg.imread(f'images/{img}2.jpg')
 
         u, v = lucas_kanade(img1, img2)
-
-        r = (u**2 + v**2).flatten()
         
         plt.figure(f'Lucas Kanade - {img}')
         plt.imshow(img1, cmap='gray', interpolation='bicubic')
