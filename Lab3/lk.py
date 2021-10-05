@@ -18,7 +18,6 @@ def of_flow_new(img1, img2,w):
     k2 = np.array([[-1, -1], [1, 1]]) / 4
     k3 = np.array([[1, 1], [1, 1]]) / 4
 
-    ## Calculating gradients by convolving kernels
     dx = ndimage.convolve(input=img1, weights=k1)+ndimage.convolve(input=img2, weights=k1)
     dy = ndimage.convolve(input=img1, weights=k2)+ndimage.convolve(input=img2, weights=k2)
     dt = ndimage.convolve(input=img2, weights=k3)+ndimage.convolve(input=img1, weights=-1*k3)
@@ -28,19 +27,15 @@ def of_flow_new(img1, img2,w):
     for x in range(w//2,wid-w//2):
       for y in range(w//2,hei-w//2):
 
-        ## Selecting block(Window) around the pixel
         dx2 = (dx[x - w // 2:x + w //2 + 1,  y - w // 2:y + w // 2 + 1]).flatten()
         dy2 = (dy[x - w // 2:x + w // 2 + 1, y - w // 2:y + w // 2 + 1]).flatten()
         dt2 = (dt[x - w // 2:x + w // 2 + 1, y - w // 2:y + w // 2 + 1]).flatten()
 
-        ## Reshaping to generate the format of Ax=B
         B=-1*np.asarray(dt2)
         A=np.asarray([dx2,dy2]).reshape(-1,2)
 
-        ## Solving equations using pseudo inverse
         flow=np.dot(np.dot(np.linalg.pinv(np.dot(np.transpose(A),A)),np.transpose(A)),B)
 
-        ## Updating flow matrix a,b
         u[x,y]=flow[0]
         v[x,y]=flow[1]
 
