@@ -114,7 +114,7 @@ def draw_quiver2(u,v,frame,i):
             dx = u[i,j] * scale
             calc = (dx**2 + dy**2)**0.5
             if calc > value:
-              ax1.quiver(j,i,dx,dy, color='green')
+              ax1.quiver(j,i,dx,dy, angles='xy', scale_units='xy', scale=0.1, color='green')
 
 
     plt.draw()
