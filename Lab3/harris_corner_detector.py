@@ -1,4 +1,3 @@
-import os
 import numpy as np
 
 from matplotlib import pyplot as plt
@@ -10,7 +9,7 @@ def rgb2gray(rgb):
     return np.dot(rgb[..., :3], [0.2989, 0.5870, 0.1140])
 
 
-def harris_corner_detector(I, sigma=1, k=0.04, window_size=5, threshold=1e-5):
+def harris_corner_detector(I, k=0.04, window_size=5, threshold=1e-5):
     # image preprocessing
     if I.ndim == 3:
         I = rgb2gray(I)
@@ -18,8 +17,8 @@ def harris_corner_detector(I, sigma=1, k=0.04, window_size=5, threshold=1e-5):
     I = I / I.max()
 
     # compute the first order derivates at every pixel
-    Ix = gaussian_filter(I, sigma, order=(0, 1))
-    Iy = gaussian_filter(I, sigma, order=(1, 0))
+    Ix = gaussian_filter(I, 1, order=(0, 1))
+    Iy = gaussian_filter(I, 1, order=(1, 0))
 
     # compute the products of derivatives at every pixel
     Ix2 = Ix * Ix
@@ -27,9 +26,9 @@ def harris_corner_detector(I, sigma=1, k=0.04, window_size=5, threshold=1e-5):
     Iy2 = Iy * Iy
 
     # average over local window
-    Sx2 = gaussian_filter(Ix2, sigma)
-    Sxy = gaussian_filter(Ixy, sigma)
-    Sy2 = gaussian_filter(Iy2, sigma)
+    Sx2 = gaussian_filter(Ix2, 2)
+    Sxy = gaussian_filter(Ixy, 2)
+    Sy2 = gaussian_filter(Iy2, 2)
 
     # find cornerness matrix
     Q = np.dstack([Sx2, Sxy, Sxy, Sy2])
@@ -55,7 +54,7 @@ def harris_corner_detector(I, sigma=1, k=0.04, window_size=5, threshold=1e-5):
         return H, interesting_points[:, 1], interesting_points[:, 0]
 
 
-def plot(I, r, c, sigma=1, filename=None):
+def plot(I, r, c, filename=None):
     # image preprocessing
     if I.ndim == 3:
         I = rgb2gray(I)
@@ -63,8 +62,8 @@ def plot(I, r, c, sigma=1, filename=None):
     I = I / I.max()
 
     # compute the first order derivates at every pixel
-    Ix = gaussian_filter(I, sigma, order=(0, 1))
-    Iy = gaussian_filter(I, sigma, order=(1, 0))
+    Ix = gaussian_filter(I, 1, order=(0, 1))
+    Iy = gaussian_filter(I, 1, order=(1, 0))
 
     # plot
     fig, ax = plt.subplots(1, 3)
@@ -80,10 +79,14 @@ def plot(I, r, c, sigma=1, filename=None):
     ax[2].imshow(Iy, cmap='gray')
     ax[2].set_title('$I_y$', fontsize=6)
 
-    plt.tight_layout()
     if filename:
-        plt.savefig(filename, format=filename.split('.')[-1])
+        plt.savefig(
+            filename,
+            format = filename.split('.')[-1],
+            bbox_inches = 'tight',
+        )
     else:
+        plt.tight_layout()
         plt.show()
 
 
@@ -94,6 +97,8 @@ def plot_rotation(I, angles=[45, 90], filename=None, rows=1):
     ax = ax.reshape(rows, cols)
     [axis.set_axis_off() for axis in ax.flatten()]
     [axis.set_box_aspect(1) for axis in ax.flatten()]
+    plt.subplots_adjust(wspace=0.1, hspace=0)
+
 
     for i, angle in enumerate(angles):
         Ir = rotate(I, angle, cval=255)
@@ -102,10 +107,14 @@ def plot_rotation(I, angles=[45, 90], filename=None, rows=1):
         ax[i // cols, i % cols].scatter(r, c, s=0.5, c='r')
         ax[i // cols, i % cols].set_title(f'{angle}°', fontsize=6)
 
-    plt.tight_layout()
     if filename:
-        plt.savefig(filename, format=filename.split('.')[-1])
+        plt.savefig(
+            filename,
+            format = filename.split('.')[-1],
+            bbox_inches = 'tight',
+        )
     else:
+        plt.tight_layout()
         plt.show()
 
 
@@ -123,10 +132,14 @@ def plot_threshold(I, thresholds=[1e-6, 1e-5, 1e-4, 1e-3], filename=None, rows=1
         ax[i // cols, i % cols].scatter(r, c, s=0.5, c='r')
         ax[i // cols, i % cols].set_title(r'$R_{th} = $' + f'{threshold}', fontsize=6)
 
-    plt.tight_layout()
     if filename:
-        plt.savefig(filename, format=filename.split('.')[-1])
+        plt.savefig(
+            filename,
+            format = filename.split('.')[-1],
+            bbox_inches = 'tight',
+        )
     else:
+        plt.tight_layout()
         plt.show()
 
 
@@ -155,14 +168,3 @@ if __name__ == '__main__':
             filename = f'figures/1/{img}_rotation.eps',
             rows = 2,
         )
-
-    # Extra experiment
-    toy_points = np.zeros(8, 100)
-    doll_points = np.zeros(8, 50)
-    for img_folder in ['toy', 'doll']:
-        for img in os.listdir(f'images/{img_folder}'):
-            I = mpimg.imread(f'images/{img_folder}/{img}')
-
-            for threshold in np.logspace(1e-6, 1e-3, num=8)
-                _, r, c = harris_corner_detector(I, threshold=threshold):
-                plot()
